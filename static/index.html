@@ -15,27 +15,14 @@
       class RankingDetails extends React.Component {
         constructor(props) {
           super(props);
-          this.state = { items: [] };
         }
-        
-        componentDidMount() {
-          fetch("http://localhost:8080/rankings")
-            .then(res => res.json())
-            .then(
-              (result) => {
-                this.setState({
-                  items: result
-                });
-              }
-            )
-        }  
-
+      
         render() {
           return (
               <div>
               <h2>Rankings</h2>
               <ul>
-                {this.state.items.map(item => (
+                {this.props.rankings.map(item => (
                   <li key={item.PlayerName}>
                     {item.PlayerName} {item.Points}
                   </li>
@@ -49,31 +36,16 @@
       class ResultsDetails extends React.Component {
         constructor(props) {
           super(props);
-          this.state = { items: [] };
-          this.handleAdded = this.handleAdded.bind(this);
         }
-        
-        componentDidMount() {
-          fetch("http://localhost:8080/results")
-            .then(res => res.json())
-            .then(
-              (result) => {
-                this.setState({
-                  items: result
-                });
-              }
-            )
-        }  
-
+         
         render() {
           return (
             <div>
-              <ResultAdder items={this.state.items} onItemAdded={this.handleAdded} />
               <h2>Results</h2>
               <table>
               <thead><tr><th>Player One</th><th>Player Two</th><th>Winna</th></tr></thead>
               <tbody>
-                    {this.state.items.map(item => (
+                    {this.props.results.map(item => (
                     <tr key={Math.random()}>
                       <td>{item.PlayerOne}</td>
                       <td>{item.PlayerTwo}</td>
@@ -85,11 +57,6 @@
           );
         }
 
-        handleAdded(item) {
-          let items = this.state.items;
-          items.push({PlayerOne : item.PlayerOne, PlayerTwo : item.PlayerTwo, Winner : item.Winner})
-          this.setState(items);
-        }
       }
 
       class ResultAdder extends React.Component {
@@ -127,9 +94,7 @@
           let playerOne = document.getElementById("playerOneName").value
           let playerTwo = document.getElementById("playerTwoName").value
           let winner = document.getElementById("winnerName").value
-
-          this.onItemAdded({PlayerOne : playerOne, PlayerTwo : playerTwo, Winner : winner})
-
+          
           fetch('http://localhost:8080/results', {
             method: 'POST',
             headers: {
@@ -142,25 +107,63 @@
                 Winner: winner
               })
             }).then(function(e) {
-              playerOne.value = ""
-              document.getElementById("playerTwoName").value
-              document.getElementById("winnerName").value
+              document.getElementById("playerOneName").value = ""
+              document.getElementById("playerTwoName").value = ""
+              document.getElementById("winnerName").value = ""
             })
+        
+            this.onItemAdded({PlayerOne : playerOne, PlayerTwo : playerTwo, Winner : winner})
         }
       }
 
       class League extends React.Component {
         constructor(props) {
           super(props);
+          this.handleAdded = this.handleAdded.bind(this);
+          this.state = { rankings : [], results : []} 
         }
 
+        componentDidMount() {
+          this.makeRemoteCall();
+        } 
+
         render() {
+          console.log('render')
           return (
             <div>
-              <RankingDetails />
-              <ResultsDetails />
+              <RankingDetails rankings={this.state.rankings} onItemAdded={this.handleAdded}/>
+              <ResultAdder onItemAdded={this.handleAdded} />
+              <ResultsDetails results={this.state.results} />
           </div>
           )
+        }
+
+        handleAdded() {
+          console.log('handling')
+          this.makeRemoteCall();
+        }
+
+        makeRemoteCall() {
+          console.log('remoting...')
+          fetch("http://localhost:8080/rankings")
+            .then(res => res.json())
+            .then(
+              (result) => {
+                this.setState({
+                  rankings: result
+                });
+              }
+            )
+
+          fetch("http://localhost:8080/results")
+            .then(res => res.json())
+            .then(
+              (result) => {
+                  this.setState({
+                  results: result
+                });
+              }
+            )
         }
       }
 
