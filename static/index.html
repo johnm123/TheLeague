@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rankings</title>
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="league"></div>
+
+    <script type="text/babel">
+
+      class RankingDetails extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = { items: [] };
+        }
+        
+        componentDidMount() {
+          fetch("http://localhost:8080/rankings")
+            .then(res => res.json())
+            .then(
+              (result) => {
+                this.setState({
+                  items: result
+                });
+              }
+            )
+        }  
+
+        render() {
+          return (
+              <div>
+              <h2>Rankings</h2>
+              <ul>
+                {this.state.items.map(item => (
+                  <li key={item.PlayerName}>
+                    {item.PlayerName} {item.Points}
+                  </li>
+                ))}
+              </ul>
+              </div>
+          );
+        }
+      }
+
+      class ResultsDetails extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = { items: [] };
+          this.handleAdded = this.handleAdded.bind(this);
+        }
+        
+        componentDidMount() {
+          fetch("http://localhost:8080/results")
+            .then(res => res.json())
+            .then(
+              (result) => {
+                this.setState({
+                  items: result
+                });
+              }
+            )
+        }  
+
+        render() {
+          return (
+            <div>
+              <ResultAdder items={this.state.items} onItemAdded={this.handleAdded} />
+              <h2>Results</h2>
+              <table>
+              <thead><tr><th>Player One</th><th>Player Two</th><th>Winna</th></tr></thead>
+              <tbody>
+                    {this.state.items.map(item => (
+                    <tr key={Math.random()}>
+                      <td>{item.PlayerOne}</td>
+                      <td>{item.PlayerTwo}</td>
+                      <td>{item.Winner}</td>
+                  </tr>))}
+                  </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        handleAdded(item) {
+          let items = this.state.items;
+          items.push({PlayerOne : item.PlayerOne, PlayerTwo : item.PlayerTwo, Winner : item.Winner})
+          this.setState(items);
+        }
+      }
+
+      class ResultAdder extends React.Component {
+        constructor(props) {
+          super(props);
+          this.onItemAdded = props.onItemAdded;
+          this.handleClick = this.handleClick.bind(this);
+        }
+
+        render() {
+          return (
+            <div>
+              <h2>Add</h2>
+              <form id="addPlayerForm">
+                <label>
+                  PlayerOne Name:
+                  <input type="text" id="playerOneName" name="playerOneName" />
+                </label>
+                <label>
+                  PlayerTwo Name:
+                  <input type="text" id="playerTwoName" name="playerTwoName" />
+                </label>
+                <label>
+                  Winner Name:
+                  <input type="text" id="winnerName" name="winnerName" />
+                </label>
+                <input id="button" type="button" value="Add Result" onClick={this.handleClick} />
+              </form>
+            </div>
+          );
+        }
+
+        handleClick() {
+
+          let playerOne = document.getElementById("playerOneName").value
+          let playerTwo = document.getElementById("playerTwoName").value
+          let winner = document.getElementById("winnerName").value
+
+          this.onItemAdded({PlayerOne : playerOne, PlayerTwo : playerTwo, Winner : winner})
+
+          fetch('http://localhost:8080/results', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                PlayerOne: playerOne,
+                PlayerTwo: playerTwo,
+                Winner: winner
+              })
+            }).then(function(e) {
+              playerOne.value = ""
+              document.getElementById("playerTwoName").value
+              document.getElementById("winnerName").value
+            })
+        }
+      }
+
+      class League extends React.Component {
+        constructor(props) {
+          super(props);
+        }
+
+        render() {
+          return (
+            <div>
+              <RankingDetails />
+              <ResultsDetails />
+          </div>
+          )
+        }
+      }
+
+      ReactDOM.render(
+        <League />,
+        document.getElementById('league')
+      );
+
+    </script>
+
+  </body>
+</html>
