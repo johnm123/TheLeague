@@ -56,7 +56,6 @@
             </div>
           );
         }
-
       }
 
       class ResultAdder extends React.Component {
@@ -83,18 +82,19 @@
                   Winner Name:
                   <input type="text" id="winnerName" name="winnerName" />
                 </label>
-                <input id="button" type="button" value="Add Result" onClick={this.handleClick} />
+                <input type="submit" value="Add Result" onClick={this.handleClick} />
               </form>
             </div>
           );
         }
 
-        handleClick() {
+        handleClick(e) {
+          e.preventDefault();
 
           let playerOne = document.getElementById("playerOneName").value
           let playerTwo = document.getElementById("playerTwoName").value
           let winner = document.getElementById("winnerName").value
-          
+
           fetch('http://localhost:8080/results', {
             method: 'POST',
             headers: {
@@ -112,7 +112,7 @@
               document.getElementById("winnerName").value = ""
             })
         
-            this.onItemAdded({PlayerOne : playerOne, PlayerTwo : playerTwo, Winner : winner})
+            this.onItemAdded();
         }
       }
 
@@ -124,11 +124,10 @@
         }
 
         componentDidMount() {
-          this.makeRemoteCall();
+          this.getLeagueDetails();
         } 
 
         render() {
-          console.log('render')
           return (
             <div>
               <RankingDetails rankings={this.state.rankings} onItemAdded={this.handleAdded}/>
@@ -139,16 +138,13 @@
         }
 
         handleAdded() {
-          console.log('handling')
-          this.makeRemoteCall();
+          this.getLeagueDetails();
         }
 
-        makeRemoteCall() {
-          console.log('remoting...')
+        getLeagueDetails() {
           fetch("http://localhost:8080/rankings")
             .then(res => res.json())
-            .then(
-              (result) => {
+            .then((result) => {
                 this.setState({
                   rankings: result
                 });
@@ -157,8 +153,7 @@
 
           fetch("http://localhost:8080/results")
             .then(res => res.json())
-            .then(
-              (result) => {
+            .then((result) => {
                   this.setState({
                   results: result
                 });
@@ -173,6 +168,5 @@
       );
 
     </script>
-
   </body>
 </html>
