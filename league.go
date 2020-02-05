@@ -66,11 +66,19 @@ func main() {
 			fmt.Fprintf(w, string(resultsJSON[:]))
 		}
 		if req.Method == "POST" {
-			w.WriteHeader(201)
+
 			bodyBytes, _ := ioutil.ReadAll(req.Body)
 			var r result
 			json.Unmarshal(bodyBytes, &r)
-			results = append(results, r)
+
+			if r.PlayerOne != r.Winner && r.PlayerTwo != r.Winner {
+				w.WriteHeader(400)
+			} else if r.PlayerOne == r.PlayerTwo {
+				w.WriteHeader(400)
+			} else {
+				w.WriteHeader(201)
+				results = append(results, r)
+			}
 		}
 	})
 
