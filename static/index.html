@@ -95,6 +95,8 @@
           let playerTwo = document.getElementById("playerTwoName").value
           let winner = document.getElementById("winnerName").value
 
+          var that = this;
+
           fetch('http://localhost:8080/results', {
             method: 'POST',
             headers: {
@@ -107,12 +109,11 @@
                 Winner: winner
               })
             }).then(function(e) {
+              that.onItemAdded({PlayerOne : playerOne, PlayerTwo : playerTwo, Winner : winner});
               document.getElementById("playerOneName").value = ""
               document.getElementById("playerTwoName").value = ""
               document.getElementById("winnerName").value = ""
-            })
-        
-            this.onItemAdded();
+            })        
         }
       }
 
@@ -124,24 +125,6 @@
         }
 
         componentDidMount() {
-          this.getLeagueDetails();
-        } 
-
-        render() {
-          return (
-            <div>
-              <RankingDetails rankings={this.state.rankings} onItemAdded={this.handleAdded}/>
-              <ResultAdder onItemAdded={this.handleAdded} />
-              <ResultsDetails results={this.state.results} />
-          </div>
-          )
-        }
-
-        handleAdded() {
-          this.getLeagueDetails();
-        }
-
-        getLeagueDetails() {
           fetch("http://localhost:8080/rankings")
             .then(res => res.json())
             .then((result) => {
@@ -159,6 +142,25 @@
                 });
               }
             )
+        }
+
+        render() {
+          return (
+            <div>
+              <RankingDetails rankings={this.state.rankings} onItemAdded={this.handleAdded}/>
+              <ResultAdder onItemAdded={this.handleAdded} />
+              <ResultsDetails results={this.state.results} />
+          </div>
+          )
+        }
+
+        handleAdded(result) {
+          console.dir(result);
+          let results = this.state.results;
+          console.log(results.length);
+          results.push(result);
+          this.setState({results: results});
+          console.log(results.length);
         }
       }
 
