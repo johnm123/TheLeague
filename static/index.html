@@ -6,6 +6,13 @@
     <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <style type="text/css">
+      .newlyAdded {
+        background-color: lightgreen;
+        font-style: bold;
+      }
+    </style>
   </head>
   <body>
     <div id="league"></div>
@@ -45,13 +52,16 @@
               <table>
               <thead><tr><th>Player One</th><th>Player Two</th><th>Winna</th></tr></thead>
               <tbody>
-                    {this.props.results.map(item => (
-                    <tr key={Math.random()}>
+                {
+                  this.props.results.map(item => (
+                    <tr key={Math.random()} class={item.NewlyAdded ? "newlyAdded" : ""}>
                       <td>{item.PlayerOne}</td>
                       <td>{item.PlayerTwo}</td>
                       <td>{item.Winner}</td>
-                  </tr>))}
-                  </tbody>
+                    </tr>
+                  ))
+                }
+              </tbody>
               </table>
             </div>
           );
@@ -109,7 +119,7 @@
                 Winner: winner
               })
             }).then(function(e) {
-              that.onItemAdded({PlayerOne : playerOne, PlayerTwo : playerTwo, Winner : winner});
+              that.onItemAdded({PlayerOne : playerOne, PlayerTwo : playerTwo, Winner : winner, NewlyAdded : true });
               document.getElementById("playerOneName").value = ""
               document.getElementById("playerTwoName").value = ""
               document.getElementById("winnerName").value = ""
@@ -125,14 +135,7 @@
         }
 
         componentDidMount() {
-          fetch("http://localhost:8080/rankings")
-            .then(res => res.json())
-            .then((result) => {
-                this.setState({
-                  rankings: result
-                });
-              }
-            )
+          this.getRankings();
 
           fetch("http://localhost:8080/results")
             .then(res => res.json())
@@ -154,13 +157,23 @@
           )
         }
 
+        getRankings() {
+          fetch("http://localhost:8080/rankings")
+            .then(res => res.json())
+            .then((result) => {
+                this.setState({
+                  rankings: result
+                });
+              }
+            )
+        }
+
         handleAdded(result) {
-          console.dir(result);
+          this.getRankings();
+
           let results = this.state.results;
-          console.log(results.length);
           results.push(result);
           this.setState({results: results});
-          console.log(results.length);
         }
       }
 
