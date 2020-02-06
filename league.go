@@ -33,6 +33,9 @@ type ranking struct {
 
 func main() {
 
+	createFilesIfNotExists()
+
+	playerNames := getPlayerNamesFromFile()
 	results := getResultsFromFile()
 
 	// This ensures we save the results on exit.
@@ -54,6 +57,17 @@ func main() {
 			rankings := generateRankings(results)
 			rankingsJSON, _ := json.Marshal(rankings)
 			fmt.Fprintf(w, string(rankingsJSON[:]))
+		}
+	})
+
+	http.HandleFunc("/generateFixtures", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("content-type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(200)
+		if req.Method == "GET" {
+			fixtures := generateRandomFixtures(playerNames)
+			fixturesJSON, _ := json.Marshal(fixtures)
+			fmt.Fprintf(w, string(fixturesJSON[:]))
 		}
 	})
 
@@ -87,6 +101,16 @@ func main() {
 	})
 
 	http.ListenAndServe(":8080", nil)
+}
+
+func getPlayerNamesFromFile() []string {
+	file, _ := os.Open("players.txt")
+	var players []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		players = append(players, scanner.Text())
+	}
+	return players
 }
 
 func getResultsFromFile() []result {
@@ -211,4 +235,9 @@ func generateRandomFixtures(people []string) []fixture {
 	}
 
 	return temp
+}
+
+func createFilesIfNotExists() {
+	os.OpenFile("results.txt", os.O_RDONLY|os.O_CREATE, 0666)
+	os.OpenFile("players.txt", os.O_RDONLY|os.O_CREATE, 0666)
 }
